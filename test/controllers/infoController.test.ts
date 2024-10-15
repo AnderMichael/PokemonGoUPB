@@ -20,7 +20,7 @@ describe('InfoController', () => {
   let infoServiceMock: jest.Mocked<InfoService>;
   let successHandlerMock: jest.Mocked<SuccessHandler>;
 
-  beforeEach(() => {
+  beforeAll(() => {
     infoController = new InfoController();
 
     mockRequest = {};
@@ -31,7 +31,9 @@ describe('InfoController', () => {
 
     infoServiceMock = InfoService.prototype as jest.Mocked<InfoService>;
     successHandlerMock = SuccessHandler.prototype as jest.Mocked<SuccessHandler>;
+  });
 
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
