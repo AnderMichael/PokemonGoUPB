@@ -1,53 +1,53 @@
 import { HealthController } from '../../src/controllers/healthController';
-import sinon from 'sinon';
 import { Request, Response } from 'express';
 import HealthService from '../../src/services/healthService';
 import { SuccessHandler } from '../../src/handlers/successHandler';
 
 describe('HealthController', () => {
   let healthController: HealthController;
-  let req: any;
-  let res: any;
-  let healthServiceStub: sinon.SinonStub;
-  let successHandlerStub: sinon.SinonStub;
+  let req: Partial<Request>;
+  let res: Partial<Response>;
+  let healthServiceMock: jest.SpyInstance;
+  let successHandlerMock: jest.SpyInstance;
 
   beforeEach(() => {
     healthController = new HealthController();
-    req = {};
-    res = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.stub(),
+    req = {}; 
+    res = {    
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
     };
 
-    healthServiceStub = sinon.stub(HealthService.prototype, 'checkHealth');
-    successHandlerStub = sinon.stub(SuccessHandler.prototype, 'sendOkResponse');
+    
+    healthServiceMock = jest.spyOn(HealthService.prototype, 'checkHealth');
+    successHandlerMock = jest.spyOn(SuccessHandler.prototype, 'sendOkResponse');
   });
 
   afterEach(() => {
-    sinon.restore();
+    jest.restoreAllMocks(); 
   });
 
   it('should return 200 and the health status when health check is successful', async () => {
     const healthStatus = { status: 'healthy' };
-    healthServiceStub.resolves(healthStatus);
+    healthServiceMock.mockResolvedValue(healthStatus);
 
     await healthController.getHealth(req as Request, res as Response);
 
-    expect(healthServiceStub.calledOnce).toBe(true);
-    expect(successHandlerStub.calledWith(res, healthStatus, 'Health check successful')).toBe(true);
+    expect(healthServiceMock).toHaveBeenCalledTimes(1);
+    expect(successHandlerMock).toHaveBeenCalledWith(res, healthStatus, 'Health check successful');
   });
 
-  it('should return 500 if the health check fails', async () => { 
+  it('should return 500 if the health check fails', async () => {
     const error = new Error('Health check failed');
-    healthServiceStub.rejects(error);
+    healthServiceMock.mockRejectedValue(error);
 
     await healthController.getHealth(req as Request, res as Response);
 
-    expect(healthServiceStub.calledOnce).toBe(true);
-    expect(res.status.calledWith(500)).toBe(true);
-    expect(res.json.calledWith({
+    expect(healthServiceMock).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
       success: false,
       message: 'Health check failed. Please try again later.',
-    })).toBe(true);
+    });
   });
 });
